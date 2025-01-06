@@ -5,6 +5,8 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     GOOGLE_CLIENT_ID = getenv("GOOGLE_CLIENT_ID")
     GOOGLE_CLIENT_SECRET = getenv("GOOGLE_CLIENT_SECRET")
+    SECRET_KEY = getenv("SECRET_KEY")
+    OAUTHLIB_INSECURE_TRANSPORT = True
 
 
 class DevelopmentConfig(Config):
