@@ -12,3 +12,13 @@ class Physiotherapists(BaseModel):
     location = db.Column(db.String(200), nullable=False)
     rating = db.Column(db.Float, nullable=True)
     google_id = db.Column(db.String(200), nullable=True)
+
+
+    @classmethod
+    def from_google(cls, google_data):
+        return cls(
+            first_name=google_data["given_name"],
+            last_name=google_data["family_name"],
+            email=google_data["email"],
+            google_id=google_data["sub"],
+        )
