@@ -21,4 +21,6 @@ class Physiotherapists(BaseModel):
             last_name=google_data["family_name"],
             email=google_data["email"],
             google_id=google_data["sub"],
+            location="",
+            rating=0.0
         )
