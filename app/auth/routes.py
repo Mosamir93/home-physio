@@ -34,10 +34,11 @@ def signup():
     db.session.add(user)
     db.session.commit()
 
-    token = generate_jwt(user.id)
+    token = generate_jwt(user.id, role)
     return jsonify({"token": token})
 
 
+@auth_bp.route('/auth/login', methods=['POST'], strictslashes=False)
 def login():
     google_token = request.json.get("google_token")
     google_data = validate_google_token(google_token)
@@ -52,5 +53,5 @@ def login():
     if not user:
         return jsonify({"message": "User does not exist. Please sign up."}), 400
     
-    token = generate_jwt(user.id)
+    token = generate_jwt(user.id, user.role)
     return jsonify({"token": token})

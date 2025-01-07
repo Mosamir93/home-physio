@@ -3,9 +3,10 @@ from datetime import datetime, timedelta
 from flask import current_app
 
 
-def generate_jwt(user_id):
+def generate_jwt(user_id, role):
     payload = {
         'user_id': user_id,
+        'role': role,
         'exp': datetime.utcnow() + timedelta(hours=1)
     }
     return jwt.encode(payload,
@@ -18,7 +19,7 @@ def decode_jwt(token):
         payload = jwt.decode(token,
                              current_app.config['SECRET_KEY'],
                              algorithms=['HS256'])
-        return payload['user_id']
+        return payload['user_id'], payload['role']
     except jwt.ExpiredSignatureError:
         return None
     except jwt.InvalidTokenError:

@@ -12,6 +12,7 @@ class Physiotherapists(BaseModel):
     location = db.Column(db.String(200), nullable=False)
     rating = db.Column(db.Float, nullable=True)
     google_id = db.Column(db.String(200), nullable=True)
+    role = db.Column(db.String(20), nullable=False)
 
 
     @classmethod
@@ -22,5 +23,6 @@ class Physiotherapists(BaseModel):
             email=google_data["email"],
             google_id=google_data["sub"],
             location="",
-            rating=0.0
+            rating=0.0,
+            role="physiotherapist"
         )
