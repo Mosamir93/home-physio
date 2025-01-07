@@ -7,6 +7,7 @@ class Config:
     GOOGLE_CLIENT_SECRET = getenv("GOOGLE_CLIENT_SECRET")
     SECRET_KEY = getenv("SECRET_KEY")
     OAUTHLIB_INSECURE_TRANSPORT = True
+    REDIS_URL = "redis://localhost:6379/0"
 
 
 class DevelopmentConfig(Config):

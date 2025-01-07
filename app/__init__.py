@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from config import config
 from os import getenv
 
 
@@ -8,13 +9,13 @@ db = SQLAlchemy()
 migrate = Migrate()
 
 
-def create_app():
+def create_app(config_name="development"):
     app = Flask(__name__)
 
-    app.config['SQLALCHEMY_DATABASE_URI'] = getenv("DATABASE_URI")
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config.from_object(config[config_name])
 
     db.init_app(app)
     migrate.init_app(app, db)
+
 
     return app
