@@ -1,9 +1,10 @@
-from base_model import BaseModel, db
+from .base_model import BaseModel, db
 
 
 class Booking(BaseModel):
     """Booking table of a certain time slot."""
     __tablename__ = 'booking'
+    id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
     physiotherapist_id = db.Column(db.Integer, db.ForeignKey('physiotherapists.id'), nullable=False)
     date = db.Column(db.Date, nullable=False)

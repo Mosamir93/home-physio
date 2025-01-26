@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Patient Dashboard{% endblock %}
+{% block header %}Welcome, Patient!{% endblock %}
+{% block content %}
+<section>
+    <h2>Your Bookings</h2>
+    <ul id="bookingsList">
+        <!-- Dynamically filled with bookings -->
+    </ul>
+</section>
+<section>
+    <h2>Search Physiotherapists</h2>
+    <form id="searchForm">
+        <input type="text" id="location" placeholder="Location" required />
+        <input type="date" id="searchDate" required />
+        <button type="submit">Search</button>
+    </form>
+    <ul id="searchResults">
+        <!-- Dynamically filled with search results -->
+    </ul>
+</section>
+<script>
+    document.getElementById("searchForm").onsubmit = async (e) => {
+        e.preventDefault();
+        const jwt = localStorage.getItem("jwt");
+        const location = document.getElementById("location").value;
+        const date = document.getElementById("searchDate").value;
+
+        const response = await fetch(`/patient/search?location=${location}&date=${date}`, {
+            headers: {
+                "Authorization": `Bearer ${jwt}`,
+            },
+        });
+
+        const results = await response.json();
+        const searchResults = document.getElementById("searchResults");
+        searchResults.innerHTML = "";
+        results.forEach(physio => {
+            const li = document.createElement("li");
+            li.textContent = `${physio.first_name} ${physio.last_name} - ${physio.rating} stars`;
+            searchResults.appendChild(li);
+        });
+    };
+</script>
+{% endblock %}

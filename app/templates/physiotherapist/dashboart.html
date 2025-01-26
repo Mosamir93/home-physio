@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Physiotherapist Dashboard{% endblock %}
+{% block header %}Welcome, Physiotherapist!{% endblock %}
+{% block content %}
+<section>
+    <h2>Your Bookings</h2>
+    <ul id="bookingsList">
+        <!-- Dynamically filled with bookings -->
+    </ul>
+</section>
+<section>
+    <h2>Set Availability</h2>
+    <form id="availabilityForm">
+        <input type="date" id="availabilityDate" required />
+        <input type="text" id="timeSlots" placeholder="Comma-separated time slots (e.g., 10:00-11:00, 11:00-12:00)" required />
+        <button type="submit">Set Availability</button>
+    </form>
+</section>
+<script>
+    document.getElementById("availabilityForm").onsubmit = async (e) => {
+        e.preventDefault();
+        const jwt = localStorage.getItem("jwt");
+        const date = document.getElementById("availabilityDate").value;
+        const timeSlots = document.getElementById("timeSlots").value.split(",").map(slot => slot.trim());
+
+        const response = await fetch("/physio/availabilty", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${jwt}`,
+            },
+            body: JSON.stringify({ date, time_slots: timeSlots }),
+        });
+
+        const data = await response.json();
+        alert(data.message);
+    };
+</script>
+{% endblock %}

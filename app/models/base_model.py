@@ -2,7 +2,7 @@ from datetime import datetime
 from .. import db
 
 
-class BaseModel(db.model):
+class BaseModel(db.Model):
     """BaseModel class that will be used as a
     parent class in all the other classes."""
     __abstract__ = True

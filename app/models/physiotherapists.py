@@ -1,4 +1,4 @@
-from base_model import BaseModel, db
+from .base_model import BaseModel, db
 
 
 class Physiotherapists(BaseModel):

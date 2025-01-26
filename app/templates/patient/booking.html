@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Book Appointment</title>
+</head>
+<body>
+    <h1>Book an Appointment</h1>
+    <form id="bookingForm">
+        <input type="number" id="physiotherapistId" placeholder="Physiotherapist ID" required />
+        <input type="date" id="date" required />
+        <input type="text" id="timeSlot" placeholder="Time Slot (e.g., 10:00-11:00)" required />
+        <button type="submit">Book</button>
+    </form>
+    <script>
+        document.getElementById("bookingForm").onsubmit = async (e) => {
+            e.preventDefault();
+            const jwt = localStorage.getItem("jwt");
+            if (!jwt) {
+                alert("You must be logged in to book an appointment.");
+                return;
+            }
+
+            const physiotherapistId = document.getElementById("physiotherapistId").value;
+            const date = document.getElementById("date").value;
+            const timeSlot = document.getElementById("timeSlot").value;
+
+            const response = await fetch("/patient/book", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${jwt}`,
+                },
+                body: JSON.stringify({ physiotherapist_id: physiotherapistId, date: date, time_slot: timeSlot }),
+            });
+
+            const data = await response.json();
+            console.log(data);
+            if (data.message === "Appointment booked successfully") {
+                alert("Appointment booked!");
+            } else {
+                alert(data.message);
+            }
+        };
+    </script>
+</body>
+</html>
