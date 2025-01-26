@@ -30,3 +30,11 @@ def set_availabilty():
     db.session.commit()
 
     return jsonify({"message": "Availability set successfully"})
+
+
+@physio_bp.route('/dashboard', methods=['GET'], strict_slashes=False)
+@jwt_required()
+def dashboard():
+    user_id = get_jwt_identity()
+    availabilities = Availability.query.filter_by(physiotherapist_id=user_id).all()
+    return jsonify({"availabilities": [a.to_dict() for a in availabilities]})

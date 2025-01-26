@@ -42,3 +42,10 @@ def book_appointment():
     db.session.commit()
 
     return jsonify({"message": "Appointment booked successfully"})
+
+@patient_bp.route('/dashboard', methods=['GET'], strict_slashes=False)
+@jwt_required()
+def dashboard():
+    user_id = get_jwt_identity()
+    bookings = Booking.query.filter_by(patient_id=user_id).all()
+    return jsonify({"bookings": [b.to_dict() for b in bookings]})
