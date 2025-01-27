@@ -1,42 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Login</title>
-    <script>
-        const jwt = localStorage.getItem("jwt");
-        if (jwt) {
-            alert("You are already logged in.");
-            window.location.href = "/dashboard";  <!-- ### MODIFICATION ### Redirect logged-in users -->
-        }
-    </script>
-</head>
-<body>
-    <h1>Login</h1>
-    <form id="loginForm">
-        <input type="text" id="googleToken" placeholder="Google Token" required />
-        <button type="submit">Login</button>
-    </form>
-    <script>
-        document.getElementById("loginForm").onsubmit = async (e) => {
-            e.preventDefault();
-            const googleToken = document.getElementById("googleToken").value;
-
-            const response = await fetch("/auth/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ google_token: googleToken }),
-            });
-
-            const data = await response.json();
-            console.log(data);
-            if (data.token) {
-                localStorage.setItem("jwt", data.token);
-                alert("Login successful!");
-                window.location.href = "/dashboard";
-            } else {
-                alert(data.message);
-            }
-        };
-    </script>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<h2>Login</h2>
+<form action="/auth/login" method="POST" id="manualLoginForm">
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
+    {% endif %}
+    <input type="email" name="email" placeholder="Email" required />
+    <input type="password" name="password" placeholder="Password" required />
+    <button type="submit">Login</button>
+</form>
+{% endblock %}

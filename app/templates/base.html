@@ -4,24 +4,30 @@
     <title>{% block title %}Physio Booking{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-
+    <script src="https://accounts.google.com/gsi/client" async defer></script> <!-- Google JS Library -->
 </head>
 <body>
     <header>
         <h1>{% block header %}Physio Booking System{% endblock %}</h1>
         <nav>
             <a href="/">Home</a>
-            <a href="/auth/login">Login</a>
-            <a href="/auth/signup">Signup</a>
-            <a href="/patient/dashboard">Patient Dashboard</a>
-            <a href="/physio/dashboard">Physiotherapist Dashboard</a>
+            {% if not session.get('user') %}
+                <a href="/auth/login">Login</a>
+                <a href="/auth/signup">Signup</a>
+            {% else %}
+                {% if session['user']['role'] == 'patient' %}
+                    <a href="/patient/dashboard">Dashboard</a>
+                {% elif session['user']['role'] == 'physiotherapist' %}
+                    <a href="/physio/dashboard">Dashboard</a>
+                {% endif %}
+                <a href="/auth/logout">Logout</a>
+            {% endif %}
         </nav>
     </header>
     <main>
         {% block content %}{% endblock %}
     </main>
     <footer>
-        <p>&copy; 2025 Physio Booking System. All rights reserved.</p>
     </footer>
 </body>
 </html>

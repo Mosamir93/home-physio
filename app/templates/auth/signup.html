@@ -1,42 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Signup</title>
-</head>
-<body>
-    <h1>Signup</h1>
-    <form id="signupForm">
-        <input type="text" id="googleToken" placeholder="Google Token" required />
-        <input type="text" id="phone" placeholder="Phone" required />
-        <select id="role">
-            <option value="patient">Patient</option>
-            <option value="physiotherapist">Physiotherapist</option>
-        </select>
-        <button type="submit">Signup</button>
-    </form>
-    <script>
-        document.getElementById("signupForm").onsubmit = async (e) => {
-            e.preventDefault();
-            const googleToken = document.getElementById("googleToken").value;
-            const phone = document.getElementById("phone").value;
-            const role = document.getElementById("role").value;
-
-            const response = await fetch("/auth/signup", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ google_token: googleToken, phone: phone, role: role }),
-            });
-
-            const data = await response.json();
-            console.log(data);
-            if (data.token) {
-                localStorage.setItem("jwt", data.token);
-                alert("Signup successful!");
-                window.location.href = role === "patient" ? "/patient/dashboard" : "/physio/dashboard";
-            } else {
-                alert(data.message);
-            }
-        };
-    </script>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Signup{% endblock %}
+{% block content %}
+<h2>Signup</h2>
+<form action="/auth/signup" method="POST" id="manualSignupForm">
+    <input type="text" name="first_name" placeholder="First Name" required />
+    <input type="text" name="last_name" placeholder="Last Name" required />
+    <input type="text" name="email" placeholder="Email" required />
+    <input type="password" name="password" placeholder="Password" required />
+    <input type="text" name="phone" placeholder="Phone" required />
+    <input type="text" name="city" placeholder="City" required>
+    <select name="role">
+        <option value="patient">Patient</option>
+        <option value="physiotherapist">Physiotherapist</option>
+    </select>
+    <button type="submit">Signup</button>
+</form>
+{% endblock %}

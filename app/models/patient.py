@@ -11,6 +11,8 @@ class Patient(BaseModel):
     phone = db.Column(db.String(20), nullable=False)
     google_id = db.Column(db.String(200), nullable=True)
     role = db.Column(db.String(20), nullable=False)
+    city = db.Column(db.String(50), nullable=False)
+    password_hash = db.Column(db.String(128))
 
 
     @classmethod

@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_jwt_extended import JWTManager
 from config import config
 from os import getenv
 import os
@@ -17,6 +18,7 @@ def create_app(config_name="development"):
 
     db.init_app(app)
     migrate.init_app(app, db)
+    jwt = JWTManager(app)
     from .routes.general import general_bp
     from .routes.patient import patient_bp
     from .routes.physiotherapists import physio_bp

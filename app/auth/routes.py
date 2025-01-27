@@ -1,11 +1,10 @@
-from flask import Blueprint, request, jsonify, session, render_template
-from ..models.patient import Patient
-from ..models.physiotherapists import Physiotherapists
+from flask import Blueprint, request, jsonify, render_template, redirect, url_for
 from flask_bcrypt import Bcrypt
-from .utils import generate_jwt, decode_jwt
-from .oauth import validate_google_token
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, unset_jwt_cookies
+from ..models.patient import Patient
+from .utils import get_dashboard_redirect, set_jwt_cookies
+from ..models.physiotherapists import Physiotherapists
 from .. import db
-
 
 auth_bp = Blueprint('auth', __name__)
 bcrypt = Bcrypt()
@@ -16,67 +15,55 @@ def signup():
     if request.method == 'GET':
         return render_template('auth/signup.html')
 
-    use_oauth = request.json.get("use_oauth", False)
-    role = request.json.get("role")
-    email = request.json.get("email")
-    phone = request.json.get("phone")
-    password = request.json.get("password")
+    data = request.form
+    first_name = data.get('first_name')
+    last_name = data.get('last_name')
+    email = data.get('email')
+    phone = data.get('phone')
+    city = data.get('city')
+    password = data.get('password')
+    role = request.form.get("role")
 
-    if use_oauth:
-        google_token = request.json.get("google_token")
-        google_data = validate_google_token(google_token)
+    if not (email and password and phone):
+        return render_template('auth/signup.html', error="All fields are required.")
 
-        if not google_data:
-            return jsonify({"message": "Invalid Google token"}), 400
+    user = Patient.query.filter_by(email=email).first() or Physiotherapists.query.filter_by(email=email).first()
 
-        email = google_data.get("email")
-        user = Patient.query.filter_by(email=email).first() or Physiotherapists.query.filter_by(email=email).first()
+    if user:
+        return render_template('auth/signup.html', error="User already exists. Log in instead.")
 
-        if user:
-            return jsonify({"message": "User already exists. Log in instead."}), 400
+    hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
 
-        if role == "patient":
-            user = Patient.from_google(google_data)
-        elif role == "physiotherapist":
-            user = Physiotherapists.from_google(google_data)
-
-        user.phone = phone
-
-    else:
-        if not (email and password and phone):
-            return jsonify({"message": "Email, password, and phone are required."}), 400
-
-        user = Patient.query.filter_by(email=email).first() or Physiotherapists.query.filter_by(email=email).first()
-        if user:
-            return jsonify({"message": "User already exists. Log in instead."}), 400
-
-        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-        if role == "patient":
-            user = Patient(
-                first_name=request.json.get("first_name"),
-                last_name=request.json.get("last_name"),
-                email=email,
-                phone=phone,
-                role="patient",
-                google_id=None,
-                password=hashed_password
-            )
-        elif role == "physiotherapist":
-            user = Physiotherapists(
-                first_name=request.json.get("first_name"),
-                last_name=request.json.get("last_name"),
-                email=email,
-                phone=phone,
-                role="physiotherapist",
-                google_id=None,
-                password=hashed_password
-            )
+    if role == "patient":
+        user = Patient(
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            phone=phone,
+            city=city,
+            role="patient",
+            password_hash=hashed_password
+        )
+    elif role == "physiotherapist":
+        user = Physiotherapists(
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            phone=phone,
+            city=city,
+            role="physiotherapist",
+            password_hash=hashed_password
+        )
 
     db.session.add(user)
     db.session.commit()
 
-    token = generate_jwt(user.id, user.role)
-    return jsonify({"token": token})
+    token = create_access_token(identity={"id": user.id, "role": user.role})
+    response = redirect(get_dashboard_redirect(user.role))
+
+    set_jwt_cookies(response, token)
+
+    return response
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'], strict_slashes=False)
@@ -84,36 +71,26 @@ def login():
     if request.method == 'GET':
         return render_template('auth/login.html')
 
-    use_oauth = request.json.get("use_oauth", False)
+    email = request.form.get("email")
+    password = request.form.get("password")
 
-    if use_oauth:
-        google_token = request.json.get("google_token")
-        google_data = validate_google_token(google_token)
+    if not (email and password):
+        return render_template('auth/login.html', error="Email and password are required.")
 
-        if not google_data:
-            return jsonify({"message": "Invalid Google token"}), 400
+    user = Patient.query.filter_by(email=email).first() or Physiotherapists.query.filter_by(email=email).first()
 
-        email = google_data.get("email")
-        user = Patient.query.filter_by(email=email).first() or Physiotherapists.query.filter_by(email=email).first()
+    if not user or not bcrypt.check_password_hash(user.password_hash, password):
+        return render_template('auth/login.html', error="Invalid email or password.")
 
-    else:
-        email = request.json.get("email")
-        password = request.json.get("password")
+    token = create_access_token(identity={"id": user.id, "role": user.role})
+    response = redirect(get_dashboard_redirect(user.role))
+    set_jwt_cookies(response, token)
 
-        if not (email and password):
-            return jsonify({"message": "Email and password are required."}), 400
+    return response
 
-        user = Patient.query.filter_by(email=email).first() or Physiotherapists.query.filter_by(email=email).first()
-
-        if not user or not bcrypt.check_password_hash(user.password, password):
-            return jsonify({"message": "Invalid email or password."}), 400
-
-    if not user:
-        return jsonify({"message": "User does not exist. Please sign up."}), 400
-
-    token = generate_jwt(user.id, user.role)
-    return jsonify({"token": token, "role": user.role})
 
 @auth_bp.route('/logout', methods=['POST'], strict_slashes=False)
 def logout():
-    return jsonify({"message": "Logged out successfully"}), 200
+    response = jsonify({"message": "Logout successful"})
+    unset_jwt_cookies(response)
+    return response

@@ -1,39 +1,33 @@
 {% extends "base.html" %}
 {% block title %}Physiotherapist Dashboard{% endblock %}
-{% block header %}Welcome, Physiotherapist!{% endblock %}
+{% block header %}Welcome, {{ physiotherapist.first_name }}!{% endblock %}
 {% block content %}
 <section>
-    <h2>Your Bookings</h2>
-    <ul id="bookingsList">
-        <!-- Dynamically filled with bookings -->
-    </ul>
+    <h2>Your Info</h2>
+    <p>Name: {{ physiotherapist.first_name }} {{ physiotherapist.last_name }}</p>
+    <p>Phone: {{ physiotherapist.phone }}</p>
+    <p>City: {{ physiotherapist.city }}</p>
 </section>
+
 <section>
-    <h2>Set Availability</h2>
-    <form id="availabilityForm">
-        <input type="date" id="availabilityDate" required />
-        <input type="text" id="timeSlots" placeholder="Comma-separated time slots (e.g., 10:00-11:00, 11:00-12:00)" required />
+    <h2>Your Availability</h2>
+    <form method="POST" action="availability">
+        <input type="date" name="date" required />
+        <input type="text" name="time_slots" placeholder="Comma-separated time slots (e.g., 10:00-11:00, 11:00-12:00)" required />
         <button type="submit">Set Availability</button>
     </form>
 </section>
-<script>
-    document.getElementById("availabilityForm").onsubmit = async (e) => {
-        e.preventDefault();
-        const jwt = localStorage.getItem("jwt");
-        const date = document.getElementById("availabilityDate").value;
-        const timeSlots = document.getElementById("timeSlots").value.split(",").map(slot => slot.trim());
 
-        const response = await fetch("/physio/availabilty", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${jwt}`,
-            },
-            body: JSON.stringify({ date, time_slots: timeSlots }),
-        });
-
-        const data = await response.json();
-        alert(data.message);
-    };
-</script>
+<section>
+    <h2>Availability</h2>
+    <ul>
+        {% if availabilities %}
+            {% for availability in availabilities %}
+                <li>{{ availability.date }} - {{ availability.time_slot }} - {% if availability.is_booked %}Booked{% else %}Available{% endif %}</li>
+            {% endfor %}
+        {% else %}
+            <p>No availability set yet.</p>
+        {% endif %}
+    </ul>
+</section>
 {% endblock %}

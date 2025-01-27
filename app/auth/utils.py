@@ -1,28 +1,13 @@
-import jwt
-from datetime import datetime, timedelta
-from flask import current_app
+from flask import url_for
+from datetime import timedelta
 
 
-def generate_jwt(user_id, role):
-    payload = {
-        'user_id': user_id,
-        'role': role,
-        'exp': datetime.utcnow() + timedelta(hours=1)
-    }
-    return jwt.encode(payload,
-                      current_app.config['SECRET_KEY'],
-                      algorithm='HS256')
+def get_dashboard_redirect(role):
+    if role == "patient":
+        return url_for('patient.dashboard')
+    elif role == "physiotherapist":
+        return url_for('physio.dashboard')
 
-
-def decode_jwt(token):
-    try:
-        payload = jwt.decode(token,
-                             current_app.config['SECRET_KEY'],
-                             algorithms=['HS256'])
-        return payload['user_id'], payload['role']
-    except jwt.ExpiredSignatureError:
-        print("Token expired")
-        return None
-    except jwt.InvalidTokenError:
-        print("Invalid token")
-        return None
+def set_jwt_cookies(response, token):
+    expiration = timedelta(days=7)
+    response.set_cookie('access_token_cookie', token, httponly=True, secure=False, max_age=expiration)

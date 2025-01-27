@@ -5,41 +5,58 @@
 <section>
     <h2>Your Bookings</h2>
     <ul id="bookingsList">
-        <!-- Dynamically filled with bookings -->
+        {% if bookings %}
+            {% for booking in bookings %}
+                <li>
+                    <strong>{{ booking.physiotherapist.first_name }} {{ booking.physiotherapist.last_name }}:</strong> 
+                    {{ booking.date }} - {{ booking.time_slot }}
+                </li>
+            {% endfor %}
+        {% else %}
+            <li>No bookings found.</li>
+        {% endif %}
     </ul>
 </section>
+
 <section>
     <h2>Search Physiotherapists</h2>
-    <form id="searchForm">
-        <input type="text" id="location" placeholder="Location" required />
-        <input type="date" id="searchDate" required />
+    <form method="GET" action="{{ url_for('patient.dashboard') }}">
+        <input type="text" name="location" placeholder="Location" required />
+        <input type="date" name="date" required />
         <button type="submit">Search</button>
     </form>
-    <ul id="searchResults">
-        <!-- Dynamically filled with search results -->
-    </ul>
+    
+    {% if physiotherapists %}
+        <ul id="searchResults">
+            {% for physiotherapist in physiotherapists %}
+                <li>
+                    <h3>{{ physiotherapist.first_name }} {{ physiotherapist.last_name }}</h3>
+                    <p>City: {{ physiotherapist.city }}</p>
+                    <p>Phone: {{ physiotherapist.phone }}</p>
+
+                    <h4>Available Slots:</h4>
+                    <ul>
+                        {% if physiotherapist.available_slots %}
+                            {% for slot in physiotherapist.available_slots %}
+                                <li>
+                                    {{ slot.date }} - {{ slot.time_slot }}
+                                    <form action="{{ url_for('patient.book_appointment') }}" method="POST">
+                                        <input type="hidden" name="physiotherapist_id" value="{{ physiotherapist.id }}">
+                                        <input type="hidden" name="date" value="{{ slot.date }}">
+                                        <input type="hidden" name="time_slot" value="{{ slot.time_slot }}">
+                                        <button type="submit">Book this slot</button>
+                                    </form>
+                                </li>
+                            {% endfor %}
+                        {% else %}
+                            <p>No available slots</p>
+                        {% endif %}
+                    </ul>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No physiotherapists found for the search criteria.</p>
+    {% endif %}
 </section>
-<script>
-    document.getElementById("searchForm").onsubmit = async (e) => {
-        e.preventDefault();
-        const jwt = localStorage.getItem("jwt");
-        const location = document.getElementById("location").value;
-        const date = document.getElementById("searchDate").value;
-
-        const response = await fetch(`/patient/search?location=${location}&date=${date}`, {
-            headers: {
-                "Authorization": `Bearer ${jwt}`,
-            },
-        });
-
-        const results = await response.json();
-        const searchResults = document.getElementById("searchResults");
-        searchResults.innerHTML = "";
-        results.forEach(physio => {
-            const li = document.createElement("li");
-            li.textContent = `${physio.first_name} ${physio.last_name} - ${physio.rating} stars`;
-            searchResults.appendChild(li);
-        });
-    };
-</script>
 {% endblock %}
