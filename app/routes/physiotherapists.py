@@ -11,10 +11,10 @@ physio_bp = Blueprint('physio', __name__)
 @jwt_required()
 def set_availabilty():
     try:
-        user_info = get_jwt_identity()  # Fetch the JWT identity
-        print(f"User Info: {user_info}")  # Debug print to check identity
+        user_info = get_jwt_identity()
+        print(f"User Info: {user_info}")
 
-        user_id = user_info['id']  # Adjust this based on the structure of your JWT token
+        user_id = user_info['id']
 
         physiotherapist = Physiotherapists.query.get(user_id)
         if not physiotherapist:
